@@ -2,69 +2,52 @@
 
 A modern, production-ready movie search and favorites management application built with Next.js, TypeScript, TanStack Query, and Tailwind CSS.
 
-## 🚀 Tech Stack
+## Overview
+
+This frontend application provides a comprehensive movie search interface with favorites management. It integrates with a NestJS backend API and uses localStorage for client-side favorites persistence. The application features responsive design, real-time search, pagination, and optimistic UI updates.
+
+## Features
+
+- **Movie Search**: Real-time search with debounced input and pagination
+- **Movie Details**: Detailed movie information pages
+- **Favorites Management**: Add/remove movies from favorites with localStorage persistence
+- **Responsive Design**: Mobile-first, accessible UI with smooth transitions
+- **Loading States**: Skeleton loaders and proper error handling
+- **Pagination**: Configurable results per page with sorting options
+- **Type Safety**: Full TypeScript support with runtime validation
+
+## Tech Stack
 
 - **Framework**: Next.js 15 (App Router)
 - **Language**: TypeScript
-- **Styling**: Tailwind CSS v4
+- **Styling**: Tailwind CSS
 - **Data Fetching**: TanStack Query (React Query)
 - **Validation**: Zod
-- **Code Quality**: ESLint + Prettier
+- **State Management**: React hooks with localStorage
+- **Package Manager**: pnpm
 
-## ✨ Features
+## Prerequisites
 
-- **Movie Search**: Search for movies with debounced input and pagination
-- **Favorites Management**: Add/remove movies from favorites with optimistic updates
-- **Responsive Design**: Mobile-first, accessible UI with smooth transitions
-- **Loading States**: Skeleton loaders and proper error handling
-- **Mock API**: Local mock endpoints simulating a real backend
+- Node.js 18+
+- pnpm package manager
+- Backend API running on port 4000
 
-## 📁 Project Structure
+## Installation
 
-\`\`\`
-app/
-  ├── layout.tsx              # Root layout with providers
-  ├── page.tsx                # Search page
-  ├── favorites/page.tsx      # Favorites page
-  ├── providers.tsx           # React Query provider
-  └── api/                    # Mock API endpoints
-      ├── movies/search/route.ts
-      └── favorites/route.ts
-components/
-  ├── ui/                     # Reusable UI primitives
-  ├── navbar.tsx
-  ├── search-bar.tsx
-  ├── movie-grid.tsx
-  ├── movie-card.tsx
-  └── pagination.tsx
-lib/
-  ├── api.ts                  # API client with Zod validation
-  ├── queries.ts              # TanStack Query hooks
-  ├── types.ts                # TypeScript interfaces
-  └── schemas.ts              # Zod schemas
-\`\`\`
+1. Clone the repository
+2. Install dependencies:
+   ```bash
+   pnpm install
+   ```
 
-## 🛠️ Getting Started
+3. Start the development server:
+   ```bash
+   pnpm dev
+   ```
 
-### Prerequisites
+4. Open [http://localhost:3000](http://localhost:3000) in your browser
 
-- Node.js 18+ and pnpm installed
-
-### Installation
-
-1. Install dependencies:
-\`\`\`bash
-pnpm install
-\`\`\`
-
-2. Run the development server:
-\`\`\`bash
-pnpm dev
-\`\`\`
-
-3. Open [http://localhost:3000](http://localhost:3000) in your browser
-
-### Available Scripts
+## Available Scripts
 
 - `pnpm dev` - Start development server
 - `pnpm build` - Build for production
@@ -72,76 +55,120 @@ pnpm dev
 - `pnpm lint` - Run ESLint
 - `pnpm format` - Format code with Prettier
 
-## 🔌 Mock API Endpoints
+## Project Structure
 
-The app uses Next.js Route Handlers to simulate a backend:
+```
+app/
+├── layout.tsx              # Root layout with providers
+├── page.tsx               # Search page
+├── favorites/page.tsx      # Favorites page
+├── movies/[imdbID]/page.tsx # Movie details page
+├── providers.tsx           # React Query provider
+└── globals.css            # Global styles
 
-- `GET /api/movies/search?q={query}&page={page}` - Search movies
-- `GET /api/favorites` - Get all favorites
-- `POST /api/favorites` - Add a favorite (body: `{ imdbID }`)
-- `DELETE /api/favorites/{imdbID}` - Remove a favorite
+components/
+├── ui/                     # Reusable UI primitives
+├── navbar.tsx             # Navigation component
+├── search-bar.tsx         # Search input component
+├── movie-grid.tsx         # Movie grid layout
+├── movie-card.tsx         # Individual movie card
+├── pagination.tsx         # Pagination controls
+└── pagination-controls.tsx # Pagination settings
 
-### Simulated Latency
+lib/
+├── api.ts                 # API client with Zod validation
+├── queries.ts             # TanStack Query hooks
+├── favorites-queries.ts    # Favorites-specific queries
+├── favorites-service.ts   # localStorage service
+├── types.ts               # TypeScript interfaces
+├── schemas.ts             # Zod schemas
+└── utils.ts               # Utility functions
 
-All endpoints include 200-800ms artificial delay to simulate real network conditions and test loading states.
+hooks/
+├── use-mobile.ts          # Mobile detection hook
+└── use-toast.ts           # Toast notifications hook
+```
 
-## 🔄 Replacing Mocks with Real API
+## Backend Integration
 
-To connect to a real backend:
+The application connects to a NestJS backend API running on port 4000. The backend provides:
 
-1. Update `.env.local`:
-\`\`\`env
-NEXT_PUBLIC_API_BASE=https://your-api.com/api
-\`\`\`
+- Movie search endpoints with pagination and sorting
+- Movie details by IMDb ID
+- Health check endpoint
 
-2. Ensure your backend implements the same endpoint structure
-3. Update the API client in `lib/api.ts` if authentication is needed
-4. Remove or disable the mock route handlers in `app/api/`
+### API Endpoints Used
 
-## ♿ Accessibility
+- `GET /movies/search` - Search movies with pagination
+- `GET /movies/:imdbID` - Get movie details
+- `GET /health` - Health check
 
-- Semantic HTML elements
-- ARIA labels and roles
-- Keyboard navigation support
-- Focus indicators
-- Alt text for images
-- Screen reader friendly
+## Favorites Management
 
-## 📱 Responsive Design
+Favorites are managed entirely on the client-side using localStorage:
 
-- Mobile-first approach
-- Responsive grid layout
-- Touch-friendly interactions
-- Optimized for all screen sizes
+- **Storage**: Browser localStorage with automatic persistence
+- **Service**: Dedicated service for CRUD operations
+- **Validation**: Zod schemas for data integrity
+- **Optimistic Updates**: Instant UI feedback with error rollback
+- **Cross-page Sync**: Favorites sync across all pages
 
-## 🎨 Design System
+## Responsive Design
 
-- Clean, modern aesthetic
-- Subtle shadows and rounded corners
-- Smooth transitions
-- Accessible color contrast
-- Consistent spacing scale
+The application is built with a mobile-first approach:
 
-## 🧪 Data Flow
+- **Breakpoints**: Responsive grid layouts for all screen sizes
+- **Touch-friendly**: Optimized for mobile interactions
+- **Accessibility**: ARIA labels, keyboard navigation, screen reader support
+- **Performance**: Optimized images and lazy loading
 
-- **TanStack Query** manages all server state
-- **Optimistic updates** for instant UI feedback
-- **Automatic rollback** on mutation errors
-- **Smart caching** with configurable stale time
-- **Zod validation** ensures type safety at runtime
+## State Management
 
-## 📝 Notes
+- **Server State**: TanStack Query for API data caching and synchronization
+- **Client State**: React hooks for UI state management
+- **Persistence**: localStorage for favorites data
+- **URL State**: Search parameters synced with URL for bookmarking
 
-- Favorites are stored in-memory and reset on server restart
-- In production, replace with a database (PostgreSQL, MongoDB, etc.)
-- All responses are validated with Zod schemas
+## Configuration
+
+### Environment Variables
+
+Create `.env.local` for custom configuration:
+
+```env
+NEXT_PUBLIC_API_BASE=http://localhost:4000
+```
+
+### Backend Connection
+
+Ensure the backend API is running on port 4000. The frontend will automatically connect to:
+- `http://localhost:4000` for API calls
+- CORS is pre-configured for this setup
+
+## Development Notes
+
+- Favorites persist across browser sessions using localStorage
+- Search parameters are preserved in URL for bookmarking
+- All API responses are validated with Zod schemas
 - TypeScript ensures compile-time type safety
-\`\`\`
+- Optimistic updates provide instant user feedback
+- Error boundaries handle API failures gracefully
 
-```prettier file=".prettierrc"
-{
-  "semi": false,
-  "singleQuote": true,
-  "tabWidth": 2,
-  "trailingComma": "es5"
-}
+## Performance Features
+
+- **Debounced Search**: Reduces API calls during typing
+- **Skeleton Loading**: Improves perceived performance
+- **Image Optimization**: Next.js automatic image optimization
+- **Code Splitting**: Automatic route-based code splitting
+- **Caching**: TanStack Query intelligent caching strategy
+
+## Browser Support
+
+- Chrome 90+
+- Firefox 88+
+- Safari 14+
+- Edge 90+
+
+## License
+
+MIT

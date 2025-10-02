@@ -95,7 +95,7 @@ export default function FavoritesPage() {
           ) : (
             <div className={`grid ${getGridCols()} gap-4`}>
               {favorites.map((movie) => (
-                <MovieCard key={movie.imdbID} movie={movie} showFavoriteButton={false} />
+                <MovieCard key={movie.imdbID} movie={movie} showFavoriteButton={true} />
               ))}
             </div>
           )}
