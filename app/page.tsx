@@ -93,6 +93,14 @@ export default function SearchPage() {
     setSortDirection(params.sortDirection)
   }, [])
 
+  // Calculate optimal grid columns based on page size
+  const getGridCols = () => {
+    if (pageSize <= 5) return "grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5"
+    if (pageSize <= 10) return "grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6"
+    if (pageSize <= 20) return "grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7"
+    return "grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-7 xl:grid-cols-8"
+  }
+
   return (
     <div className="container mx-auto px-4 py-8 max-w-7xl">
       <div className="mb-8">
@@ -114,8 +122,8 @@ export default function SearchPage() {
 
       <div className="mt-8">
         {isLoading && (
-          <div className="grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] gap-4">
-            {Array.from({ length: 8 }).map((_, i) => (
+          <div className={`grid ${getGridCols()} gap-4`}>
+            {Array.from({ length: pageSize }).map((_, i) => (
               <Skeleton key={i} className="h-80 rounded-2xl" />
             ))}
           </div>
@@ -161,7 +169,7 @@ export default function SearchPage() {
               </div>
             ) : (
               <>
-                <MovieGrid movies={data.Search} />
+                <MovieGrid movies={data.Search} pageSize={pageSize} />
                 {data.totalResults && Number(data.totalResults) > pageSize && (
                   <Pagination
                     currentPage={pageOffset}

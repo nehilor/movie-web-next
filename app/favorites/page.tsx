@@ -1,21 +1,51 @@
 "use client"
 
 import { MovieGrid } from "@/components/movie-grid"
-import { useFavoritesQuery } from "@/lib/queries"
+import { MovieCard } from "@/components/movie-card"
+import { useFavoritesQuery, useClearFavoritesMutation } from "@/lib/queries"
 import { Skeleton } from "@/components/ui/skeleton"
+import { Button } from "@/components/ui/button"
 
 export default function FavoritesPage() {
   const { data: favorites, isLoading, isError, error } = useFavoritesQuery()
+  const clearFavorites = useClearFavoritesMutation()
+
+  const handleClearFavorites = () => {
+    if (confirm("Are you sure you want to clear all favorites?")) {
+      clearFavorites.mutate()
+    }
+  }
+
+  // Calculate optimal grid columns based on favorites count
+  const getGridCols = () => {
+    const count = favorites?.length || 0
+    if (count <= 5) return "grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5"
+    if (count <= 10) return "grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6"
+    if (count <= 20) return "grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7"
+    return "grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-7 xl:grid-cols-8"
+  }
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-7xl">
       <div className="mb-8">
         <h1 className="text-4xl font-bold mb-2 text-balance">My Favorites</h1>
         <p className="text-muted-foreground text-lg">Your curated collection of favorite movies</p>
+        {favorites && favorites.length > 0 && (
+          <div className="mt-4">
+            <Button
+              onClick={handleClearFavorites}
+              variant="outline"
+              size="sm"
+              className="text-destructive hover:text-destructive-foreground hover:bg-destructive"
+            >
+              Clear All Favorites
+            </Button>
+          </div>
+        )}
       </div>
 
       {isLoading && (
-        <div className="grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] gap-4">
+        <div className={`grid ${getGridCols()} gap-4`}>
           {Array.from({ length: 6 }).map((_, i) => (
             <Skeleton key={i} className="h-80 rounded-2xl" />
           ))}
@@ -63,7 +93,11 @@ export default function FavoritesPage() {
               </a>
             </div>
           ) : (
-            <MovieGrid movies={favorites} />
+            <div className={`grid ${getGridCols()} gap-4`}>
+              {favorites.map((movie) => (
+                <MovieCard key={movie.imdbID} movie={movie} showFavoriteButton={false} />
+              ))}
+            </div>
           )}
         </>
       )}
