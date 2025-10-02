@@ -6,15 +6,29 @@ import type { MovieSummary, SearchResponse, MovieDetail } from "./types"
 // Search movies query
 export function useMoviesSearchQuery({
   q,
-  page,
+  pageOffset = 1,
+  pageSize = 10,
+  orderBy = 'imdbID',
+  sortDirection = 'ascending',
 }: {
   q: string
-  page: number
+  pageOffset?: number
+  pageSize?: number
+  orderBy?: string
+  sortDirection?: string
 }) {
   return useQuery({
-    queryKey: ["movies", "search", { q, page }],
-    queryFn: () =>
-      fetchJSON<SearchResponse>(`/movies/search?query=${encodeURIComponent(q)}&page=${page}`, {}, SearchResponseSchema),
+    queryKey: ["movies", "search", { q, pageOffset, pageSize, orderBy, sortDirection }],
+    queryFn: () => {
+      const params = new URLSearchParams({
+        query: q,
+        page_offset: pageOffset.toString(),
+        page_size: pageSize.toString(),
+        order_by: orderBy,
+        sort_direction: sortDirection,
+      })
+      return fetchJSON<SearchResponse>(`/movies/search?${params.toString()}`, {}, SearchResponseSchema)
+    },
     enabled: q.length > 0,
   })
 }

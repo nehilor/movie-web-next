@@ -1,43 +1,97 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
 import { SearchBar } from "@/components/search-bar"
 import { MovieGrid } from "@/components/movie-grid"
 import { Pagination } from "@/components/pagination"
+import { PaginationControls } from "@/components/pagination-controls"
 import { useMoviesSearchQuery } from "@/lib/queries"
 import { Skeleton } from "@/components/ui/skeleton"
 
 export default function SearchPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const qParam = searchParams.get("q") || ""
-  const pageParam = Number.parseInt(searchParams.get("page") || "1", 10)
+  const isUpdatingRef = useRef(false)
 
-  const [query, setQuery] = useState(qParam)
-  const [page, setPage] = useState(pageParam)
+  // Initialize state from URL params
+  const [query, setQuery] = useState(() => searchParams.get("q") || "")
+  const [pageOffset, setPageOffset] = useState(() => Number.parseInt(searchParams.get("page_offset") || "1", 10))
+  const [pageSize, setPageSize] = useState(() => Number.parseInt(searchParams.get("page_size") || "10", 10))
+  const [orderBy, setOrderBy] = useState(() => searchParams.get("order_by") || "imdbID")
+  const [sortDirection, setSortDirection] = useState(() => searchParams.get("sort_direction") || "ascending")
 
   const { data, isLoading, isError, error } = useMoviesSearchQuery({
     q: query,
-    page,
+    pageOffset,
+    pageSize,
+    orderBy,
+    sortDirection,
   })
 
+  // Update URL when state changes - but only if it's different
   useEffect(() => {
+    if (isUpdatingRef.current) {
+      isUpdatingRef.current = false
+      return
+    }
+
     const params = new URLSearchParams()
     if (query) params.set("q", query)
-    if (page > 1) params.set("page", page.toString())
-    router.replace(`/?${params.toString()}`, { scroll: false })
-  }, [query, page, router])
+    if (pageOffset > 1) params.set("page_offset", pageOffset.toString())
+    if (pageSize !== 10) params.set("page_size", pageSize.toString())
+    if (orderBy !== "imdbID") params.set("order_by", orderBy)
+    if (sortDirection !== "ascending") params.set("sort_direction", sortDirection)
 
-  const handleSearch = (newQuery: string) => {
+    const newUrl = `/?${params.toString()}`
+    const currentUrl = window.location.pathname + window.location.search
+
+    // Only update if the URL is actually different
+    if (newUrl !== currentUrl) {
+      router.replace(newUrl, { scroll: false })
+    }
+  }, [query, pageOffset, pageSize, orderBy, sortDirection, router])
+
+  // Sync state with URL params when they change (e.g., browser back/forward)
+  useEffect(() => {
+    const urlQuery = searchParams.get("q") || ""
+    const urlPageOffset = Number.parseInt(searchParams.get("page_offset") || "1", 10)
+    const urlPageSize = Number.parseInt(searchParams.get("page_size") || "10", 10)
+    const urlOrderBy = searchParams.get("order_by") || "imdbID"
+    const urlSortDirection = searchParams.get("sort_direction") || "ascending"
+
+    // Only update state if URL params are different from current state
+    if (urlQuery !== query || urlPageOffset !== pageOffset || urlPageSize !== pageSize || urlOrderBy !== orderBy || urlSortDirection !== sortDirection) {
+      isUpdatingRef.current = true
+      if (urlQuery !== query) setQuery(urlQuery)
+      if (urlPageOffset !== pageOffset) setPageOffset(urlPageOffset)
+      if (urlPageSize !== pageSize) setPageSize(urlPageSize)
+      if (urlOrderBy !== orderBy) setOrderBy(urlOrderBy)
+      if (urlSortDirection !== sortDirection) setSortDirection(urlSortDirection)
+    }
+  }, [searchParams, query, pageOffset, pageSize, orderBy, sortDirection])
+
+  const handleSearch = useCallback((newQuery: string) => {
     setQuery(newQuery)
-    setPage(1)
-  }
+    setPageOffset(1)
+  }, [])
 
-  const handlePageChange = (newPage: number) => {
-    setPage(newPage)
+  const handlePageChange = useCallback((newPage: number) => {
+    setPageOffset(newPage)
     window.scrollTo({ top: 0, behavior: "smooth" })
-  }
+  }, [])
+
+  const handlePaginationChange = useCallback((params: {
+    pageOffset: number
+    pageSize: number
+    orderBy: string
+    sortDirection: string
+  }) => {
+    setPageOffset(params.pageOffset)
+    setPageSize(params.pageSize)
+    setOrderBy(params.orderBy)
+    setSortDirection(params.sortDirection)
+  }, [])
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-7xl">
@@ -47,6 +101,16 @@ export default function SearchPage() {
       </div>
 
       <SearchBar initialQuery={query} onSearch={handleSearch} />
+
+      {query && (
+        <PaginationControls
+          pageOffset={pageOffset}
+          pageSize={pageSize}
+          orderBy={orderBy}
+          sortDirection={sortDirection}
+          onPaginationChange={handlePaginationChange}
+        />
+      )}
 
       <div className="mt-8">
         {isLoading && (
@@ -98,10 +162,10 @@ export default function SearchPage() {
             ) : (
               <>
                 <MovieGrid movies={data.Search} />
-                {data.totalResults && Number(data.totalResults) > 10 && (
+                {data.totalResults && Number(data.totalResults) > pageSize && (
                   <Pagination
-                    currentPage={page}
-                    totalPages={Math.ceil(Number(data.totalResults) / 10)}
+                    currentPage={pageOffset}
+                    totalPages={Math.ceil(Number(data.totalResults) / pageSize)}
                     onPageChange={handlePageChange}
                   />
                 )}
